@@ -5,7 +5,8 @@
     "target": "es2020",
     "experimentalDecorators": true,
     "skipLibCheck": true,
-    "outDir": "temp/vscode-dist",
+    "rootDir": "./assets/scripts",
+    "outDir": "./temp/tsc-output",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noImplicitAny": true,
@@ -16,7 +17,8 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "types": ["jest"]
   },
   "exclude": [
     "node_modules",
