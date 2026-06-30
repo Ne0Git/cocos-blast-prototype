@@ -48,3 +48,16 @@ export interface IMoveResult {
     gameState: GameState;
     superTileCreated?: IBlockData;
 }
+
+export interface IGameModel {
+    rows: number;
+    cols: number;
+    movesLeft: number;
+    currentScore: number;
+    targetScore: number;
+    gameState: GameState;
+
+    init(rows: number, cols: number, moves: number, targetScore: number): void;
+    clickTile(row: number, col: number): IMoveResult;
+    canMakeMove(): boolean;
+}
