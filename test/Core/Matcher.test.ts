@@ -1,5 +1,5 @@
-import { Matcher } from "./Matcher";
-import { BlockType } from "./Contracts";
+import { Matcher } from "../../assets/scripts/Core/Matcher";
+import { BlockType } from "../../assets/scripts/Core/Contracts";
 
 describe("Matcher.findGroup", () => {
     it("should find a matching group of 3 blocks", () => {

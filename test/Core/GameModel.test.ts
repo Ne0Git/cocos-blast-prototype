@@ -1,5 +1,5 @@
-import { GameModel } from "./GameModel";
-import { BlockType } from "./Contracts";
+import { GameModel } from "../../assets/scripts/Core/GameModel";
+import { BlockType } from "../../assets/scripts/Core/Contracts";
 
 describe("GameModel - Core Loop", () => {
     let model: GameModel;
