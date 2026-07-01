@@ -48,26 +48,6 @@ export class GameModel implements IGameModel {
         }
     }
 
-    private generateValidGrid(): void {
-        do {
-            this._grid = [];
-
-            for (let r = 0; r < this.rows; r++) {
-                const row: IBlockData[] = [];
-                for (let c = 0; c < this.cols; c++) {
-                    const randomType = this._availableColors[Math.floor(Math.random() * this._availableColors.length)];
-                    row.push({
-                        id: this.generateUniqueId(),
-                        type: randomType,
-                        row: r,
-                        col: c
-                    });
-                }
-                this._grid.push(row);
-            }
-        } while(!this.canMakeMove());
-    }
-
     public clickTile(row: number, col: number): IMoveResult {
         if (this.gameState !== GameState.Playing) {
             return this.createEmptyMoveResult();
@@ -104,6 +84,47 @@ export class GameModel implements IGameModel {
             currentScore: this.currentScore,
             gameState: this.gameState
         };
+    }
+
+    public canMakeMove(): boolean {
+        const typeGrid = this._grid.map(r => r.map(b => b.type));
+
+        for (let r = 0; r < this.rows; r++) {
+            for (let c = 0; c < this.cols; c++) {
+                if (typeGrid[r][c] !== BlockType.None) {
+                    const group = Matcher.findGroup(typeGrid, r, c);
+                    if (group.length >= 2) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public getGridSnapshot(): IBlockData[][] {
+        return this._grid.map(row => row.map(block => Object.assign({}, block)));
+    }
+
+    private generateValidGrid(): void {
+        do {
+            this._grid = [];
+
+            for (let r = 0; r < this.rows; r++) {
+                const row: IBlockData[] = [];
+                for (let c = 0; c < this.cols; c++) {
+                    const randomType = this._availableColors[Math.floor(Math.random() * this._availableColors.length)];
+                    row.push({
+                        id: this.generateUniqueId(),
+                        type: randomType,
+                        row: r,
+                        col: c
+                    });
+                }
+                this._grid.push(row);
+            }
+        } while(!this.canMakeMove());
     }
 
     private collapseGrid(): { falling: IFallingBlockInfo[], spawned: ISpawnedBlockInfo[] } {
@@ -154,23 +175,6 @@ export class GameModel implements IGameModel {
         }
 
         return { falling, spawned };
-    }
-
-    public canMakeMove(): boolean {
-        const typeGrid = this._grid.map(r => r.map(b => b.type));
-
-        for (let r = 0; r < this.rows; r++) {
-            for (let c = 0; c < this.cols; c++) {
-                if (typeGrid[r][c] !== BlockType.None) {
-                    const group = Matcher.findGroup(typeGrid, r, c);
-                    if (group.length >= 2) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
     }
 
     private updateGameState(): void {

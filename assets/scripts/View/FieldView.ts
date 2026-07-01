@@ -17,10 +17,10 @@ export default class FieldView extends cc.Component {
     @property(cc.Prefab)
     public blockPrefab: cc.Node = null!;
 
-    @property(Number)
+    @property(cc.Integer)
     private _spacing: number = 100;
 
-    @property(Number)
+    @property(cc.Integer)
     public get spacing(): number { return this._spacing; }
     public set spacing(value: number) { this._spacing = Math.max(1, value); }
 

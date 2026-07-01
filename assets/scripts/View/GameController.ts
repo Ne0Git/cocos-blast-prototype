@@ -32,7 +32,7 @@ export default class GameController extends cc.Component {
         this.uiView.updateMoves(this._model.movesLeft);
         this.uiView.hideScreens();
 
-        const typeGrid = this._model["_grid"].map(row => row.map(block => ({ ...block })));
+        const typeGrid = this._model.getGridSnapshot();
         this.fieldView.initGrid(this._rows, this._cols, typeGrid, this);
     }
 
