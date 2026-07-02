@@ -1,5 +1,6 @@
 import { BlockType, IBlockData, IFallingBlockInfo, IMoveResult, ISpawnedBlockInfo } from "../Core/Contracts";
 import GameController from "./GameController";
+import BlockView from "./BlockView";
 
 const { ccclass, property } = cc._decorator;
 
@@ -83,9 +84,10 @@ export default class FieldView extends cc.Component {
 
         this.applyBlockSprite(newBlock, type);
 
-        newBlock.on(cc.Node.EventType.TOUCH_END, () => {
+        const blockScript = newBlock.addComponent(BlockView);
+        blockScript.setup(row, col, (clickedRow, clickedCol) => {
             if (!this.isAnimating) {
-                this._controller.onBlockClicked(row, col);
+                this._controller.onBlockClicked(clickedRow, clickedCol);
             }
         });
 
@@ -139,6 +141,11 @@ export default class FieldView extends cc.Component {
         const block: cc.Node | undefined = this._blocks.get(blockData.id);
         if (!block) {
             return;
+        }
+
+        const blockScript = block.getComponent(BlockView);
+        if (blockScript) {
+            blockScript.updateIndices(blockData.toRow, blockData.col);
         }
 
         const { x: toX, y: toY } = this.getFieldPosByIndexes(blockData.toRow, blockData.col);
