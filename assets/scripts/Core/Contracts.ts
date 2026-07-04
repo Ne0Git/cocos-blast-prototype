@@ -49,6 +49,16 @@ export interface IMoveResult {
     superTileCreated?: IBlockData;
 }
 
+export interface ILevelConfig {
+    id: number;
+    rows: number;
+    cols: number;
+    moves: number;
+    targetScore: number;
+    scorePerBlock: number;
+    availableColors: number[];
+}
+
 export interface IGameModel {
     rows: number;
     cols: number;
@@ -57,7 +67,7 @@ export interface IGameModel {
     targetScore: number;
     gameState: GameState;
 
-    init(rows: number, cols: number, moves: number, targetScore: number): void;
+    init(config: ILevelConfig): void;
     clickTile(row: number, col: number): IMoveResult;
     canMakeMove(): boolean;
 }

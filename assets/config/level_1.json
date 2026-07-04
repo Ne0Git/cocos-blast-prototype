@@ -1,0 +1,15 @@
+{
+  "$schema": "../../level.schema.json",
+  "id": 1,
+  "rows": 8,
+  "cols": 8,
+  "moves": 20,
+  "targetScore": 900,
+  "scorePerBlock": 10,
+  "availableColors": [
+    1,
+    2,
+    3,
+    4
+  ]
+}

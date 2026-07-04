@@ -1,4 +1,4 @@
-import { IGameModel, BlockType, GameState, IBlockData, IMoveResult, IFallingBlockInfo, ISpawnedBlockInfo } from "./Contracts";
+import { ILevelConfig, IGameModel, BlockType, GameState, IBlockData, IMoveResult, IFallingBlockInfo, ISpawnedBlockInfo } from "./Contracts";
 import { Matcher } from "./Matcher";
 
 export class GameModel implements IGameModel {
@@ -19,11 +19,19 @@ export class GameModel implements IGameModel {
 
     private _scorePerBlock: number = 10;
 
-    public init(rows: number, cols: number, moves: number, targetScore: number): void {
-        this.rows = rows;
-        this.cols = cols;
-        this.movesLeft = moves;
-        this.targetScore = targetScore;
+    public init(config: ILevelConfig): void {
+        if (config.rows > 10 || config.cols > 9) {
+            console.warn(`[GameModel] Level size (${config.rows} rows and ${config.cols} cols) exceeds allowed maximum size of 10 rows and 9 cols! Extra blocks trimmed.`);
+            config.rows = Math.min(config.rows, 10);
+            config.cols = Math.min(config.cols, 9);
+        }
+
+        this.rows = config.rows;
+        this.cols = config.cols;
+        this.movesLeft = config.moves;
+        this.targetScore = config.targetScore;
+        this._scorePerBlock = config.scorePerBlock;
+        this._availableColors = config.availableColors;
         this.currentScore = 0;
         this.gameState = GameState.Playing;
 
@@ -124,7 +132,7 @@ export class GameModel implements IGameModel {
                 }
                 this._grid.push(row);
             }
-        } while(!this.canMakeMove());
+        } while (!this.canMakeMove());
     }
 
     private collapseGrid(): { falling: IFallingBlockInfo[], spawned: ISpawnedBlockInfo[] } {

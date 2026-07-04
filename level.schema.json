@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "rows": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10
+    },
+    "cols": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9
+    },
+    "moves": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "targetScore": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "scorePerBlock": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "availableColors": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      }
+    }
+  },
+  "required": [
+    "id",
+    "rows",
+    "cols",
+    "moves",
+    "targetScore",
+    "scorePerBlock",
+    "availableColors"
+  ]
+}
