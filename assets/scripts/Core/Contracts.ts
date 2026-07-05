@@ -16,6 +16,11 @@ export enum GameState {
     Lose
 }
 
+export enum InteractionMode {
+    Normal,
+    BoosterBomb
+}
+
 export interface IBlockData {
     id: string;
     type: BlockType;
@@ -57,6 +62,7 @@ export interface ILevelConfig {
     targetScore: number;
     scorePerBlock: number;
     availableColors: number[];
+    bonusBombs?: number;
 }
 
 export interface IGameModel {

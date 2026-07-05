@@ -18,12 +18,8 @@ export default class FieldView extends cc.Component {
     @property(cc.Prefab)
     public blockPrefab: cc.Node = null!;
 
-    @property(cc.Integer)
-    private _spacing: number = 100;
-
-    @property(cc.Integer)
-    public get spacing(): number { return this._spacing; }
-    public set spacing(value: number) { this._spacing = Math.max(1, value); }
+    @property({ type: cc.Integer, min: 1 })
+    public spacing: number = 100;
 
     @property([BlockSpriteMapping])
     public blockSprites: BlockSpriteMapping[] = [];
@@ -73,6 +69,28 @@ export default class FieldView extends cc.Component {
         } else {
             this._onAnimationsCompleteCallback = callback;
         }
+    }
+
+    public animateBombPlacement(blockId: string, callback: Function): void {
+        let targetNode: cc.Node | undefined = this._blocks.get(blockId);
+
+        if (!targetNode) {
+            callback();
+            return;
+        }
+
+        this.isAnimating = true;
+
+        this.applyBlockSprite(targetNode, BlockType.Bomb);
+
+        cc.tween(targetNode)
+            .to(0.1, { scale: 0.8 })
+            .to(0.15, { scale: 1.3 })
+            .call(() => {
+                this.isAnimating = false;
+                callback();
+            })
+            .start();
     }
 
     private _onAnimationsCompleteCallback: Function | null = null;

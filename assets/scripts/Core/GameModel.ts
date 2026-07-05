@@ -76,22 +76,9 @@ export class GameModel implements IGameModel {
             this._grid[coord.row][coord.col].type = BlockType.None;
         }
 
-        const scoreGained = group.length * this._scorePerBlock;
-        this.currentScore += scoreGained;
+        const scoreGained = this.addScore(group.length);
 
-        const { falling, spawned } = this.collapseGrid();
-
-        this.updateGameState();
-
-        return {
-            destroyed: destroyedBlocks,
-            falling: falling,
-            spawned: spawned,
-            scoreGained: scoreGained,
-            movesLeft: this.movesLeft,
-            currentScore: this.currentScore,
-            gameState: this.gameState
-        };
+        return this.prepareMoveResult(destroyedBlocks, scoreGained);
     }
 
     public canMakeMove(): boolean {
@@ -113,6 +100,33 @@ export class GameModel implements IGameModel {
 
     public getGridSnapshot(): IBlockData[][] {
         return this._grid.map(row => row.map(block => Object.assign({}, block)));
+    }
+
+    public getBlockId(row: number, col: number): string | null {
+        if (row >= 0 && row < this.rows && col >= 0 && col < this.cols) {
+            return this._grid[row][col].id;
+        }
+
+        return null;
+    }
+
+    public activateBomb(row: number, col: number, radius: number): IMoveResult {
+        const destroyedBlocks: IBlockData[] = [];
+
+        for (let r = row - radius; r <= row + radius; r++) {
+            for (let c = col - radius; c <= col + radius; c++) {
+                if (r >= 0 && r < this.rows && c >= 0 && c < this.cols) {
+                    if (this._grid[r][c].type !== BlockType.None) {
+                        destroyedBlocks.push({ ...this._grid[r][c] });
+                        this._grid[r][c].type = BlockType.None;
+                    }
+                }
+            }
+        }
+
+        const scoreGained = this.addScore(destroyedBlocks.length);
+
+        return this.prepareMoveResult(destroyedBlocks, scoreGained);
     }
 
     private generateValidGrid(): void {
@@ -208,5 +222,27 @@ export class GameModel implements IGameModel {
             currentScore: this.currentScore,
             gameState: this.gameState
         }
+    }
+
+    private addScore(blocksCount: number): number {
+        const gained = blocksCount * this._scorePerBlock;
+        this.currentScore += gained;
+        return gained;
+    }
+
+    private prepareMoveResult(destroyedBlocks: IBlockData[], scoreGained: number): IMoveResult {
+        const { falling, spawned } = this.collapseGrid();
+
+        this.updateGameState();
+
+        return {
+            destroyed: destroyedBlocks,
+            falling: falling,
+            spawned: spawned,
+            scoreGained: scoreGained,
+            movesLeft: this.movesLeft,
+            currentScore: this.currentScore,
+            gameState: this.gameState
+        };
     }
 }
