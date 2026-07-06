@@ -10,12 +10,17 @@ export default class LemelManager extends cc.Component {
     @property(cc.Integer)
     public initialBombCount: number = 3;
 
+    @property(cc.Integer)
+    public initialTeleportCount: number = 1;
+
     private _currentLevelIndex: number = 0;
 
     private _bombCount: number = 0;
+    private _teleportCount: number = 0;
 
     protected onLoad(): void {
         this._bombCount = this.initialBombCount;
+        this._teleportCount = this.initialTeleportCount;
     }
 
     public getCurrentLevelNumber(): number {
@@ -39,7 +44,7 @@ export default class LemelManager extends cc.Component {
         this._currentLevelIndex++;
     }
 
-    public getbombCount(): number {
+    public get bombCount(): number {
         return this._bombCount;
     }
 
@@ -54,5 +59,22 @@ export default class LemelManager extends cc.Component {
 
     public addBomb(count: number = 1) {
         this._bombCount += count;
+    }
+
+    public get teleportCount(): number {
+        return this._teleportCount;
+    }
+
+    public useTeleport(): boolean {
+        if (this._teleportCount <= 0) {
+            return false;
+        }
+
+        this._teleportCount--;
+        return true;
+    }
+
+    public addTeleport(count: number = 1) {
+        this._teleportCount += count;
     }
 }

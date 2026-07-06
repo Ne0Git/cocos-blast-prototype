@@ -129,6 +129,33 @@ export class GameModel implements IGameModel {
         return this.prepareMoveResult(destroyedBlocks, scoreGained);
     }
 
+    public activateTeleport(row1: number, col1: number, row2: number, col2: number): IMoveResult {
+        const id1 = this._grid[row1][col1].id;
+        const id2 = this._grid[row2][col2].id;
+
+        const tempType = this._grid[row1][col1].type;
+        this._grid[row1][col1].type = this._grid[row2][col2].type;
+        this._grid[row2][col2].type = tempType
+
+        this._grid[row1][col1].id = id2;
+        this._grid[row2][col2].id = id1;
+
+        const falling: IFallingBlockInfo[] = [
+            { id: id1, fromRow: row1, toRow: row2, col: col2, isTeleport: true },
+            { id: id2, fromRow: row2, toRow: row1, col: col1, isTeleport: true }
+        ];
+
+        return {
+            destroyed: [],
+            falling: falling,
+            spawned: [],
+            scoreGained: 0,
+            movesLeft: this.movesLeft,
+            currentScore: this.currentScore,
+            gameState: this.gameState
+        };
+    }
+
     private generateValidGrid(): void {
         do {
             this._grid = [];

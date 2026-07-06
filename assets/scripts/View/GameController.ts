@@ -1,10 +1,22 @@
 import { GameModel } from "../Core/GameModel";
-import { ILevelConfig, IMoveResult, InteractionMode } from "../Core/Contracts";
+import { BoosterRewardType, BoosterType, ILevelConfig, IMoveResult, InteractionMode } from "../Core/Contracts";
 import FieldView from "./FieldView";
 import UIView from "./UIView";
 import LevelManager from "../Infrastructure/LevelManager";
 
 const { ccclass, property } = cc._decorator;
+
+@ccclass("ComboBoosterMapping")
+class ComboBoosterMapping {
+    @property({ type: cc.Integer, min: 2, tooltip: "Minimum number of blocks to blast to gain booster" })
+    public minBlocksCount: number = 5;
+
+    @property({ type: cc.Enum(BoosterType) })
+    public boosterType: BoosterType = BoosterType.None;
+
+    @property({ type: cc.Enum(BoosterRewardType), tooltip: "Where to place bosster" })
+    public rewardType: BoosterRewardType = BoosterRewardType.Inventory;
+}
 
 @ccclass
 export default class GameController extends cc.Component {
@@ -20,15 +32,22 @@ export default class GameController extends cc.Component {
     @property({ type: cc.Integer, min: 1 })
     public bombRadius: number = 1;
 
-    @property({ type: cc.Integer, min: 2, tooltip: "Number of blocks to blast to gain bomb booster" })
-    public blocksCountForBomb: number = 5;
+    @property([ComboBoosterMapping])
+    public comboSettings: ComboBoosterMapping[] = [];
 
     private _model!: GameModel;
 
     private _currentMode: InteractionMode = InteractionMode.Normal;
 
+    private _teleportFirstRow: number = -1;
+    private _teleportFirstCol: number = -1;
+    private _teleportFirstId: string | null = null;
+
+    private _comboScale: ComboBoosterMapping[] = [];
+
     protected onLoad(): void {
         this._model = new GameModel();
+        this._comboScale = [...this.comboSettings].sort((a, b) => b.minBlocksCount - a.minBlocksCount);
     }
 
     protected start(): void {
@@ -44,10 +63,14 @@ export default class GameController extends cc.Component {
             this.levelManager.addBomb(config.bonusBombs);
         }
 
+        if (config.bonusTeleports && config.bonusTeleports > 0) {
+            this.levelManager.addTeleport(config.bonusTeleports);
+        }
+
         this.uiView.updateScore(this._model.currentScore, this._model.targetScore);
         this.uiView.updateMoves(this._model.movesLeft);
         this.uiView.hideScreens();
-        this.uiView.updateBoosterCounts(this.levelManager.getbombCount());
+        this.uiView.updateBoosterCounts(this.levelManager.bombCount, this.levelManager.teleportCount);
 
         const typeGrid = this._model.getGridSnapshot();
         this.fieldView.initGrid(config.rows, config.cols, typeGrid, this);
@@ -74,13 +97,47 @@ export default class GameController extends cc.Component {
 
                 this.fieldView.animateBombPlacement(blockId, () => {
                     this.levelManager.useBomb();
-                    this.uiView.updateBoosterCounts(this.levelManager.getbombCount());
+                    this.uiView.updateBoosterCounts(this.levelManager.bombCount, this.levelManager.teleportCount);
 
                     result = this._model.activateBomb(row, col, this.bombRadius);
                     this.processMoveResult(result);
 
                     this._currentMode = InteractionMode.Normal;
                 });
+                break;
+
+            case InteractionMode.BoosterTeleportStep1:
+                const firstId = this._model.getBlockId(row, col);
+                if (!firstId) {
+                    return;
+                }
+
+                this._teleportFirstRow = row;
+                this._teleportFirstCol = col;
+                this._teleportFirstId = firstId;
+
+                this.fieldView.setBlockHighlight(firstId, true);
+                this._currentMode = InteractionMode.BoosterTeleportStep2;
+                return;
+
+            case InteractionMode.BoosterTeleportStep2:
+                const secondId = this._model.getBlockId(row, col);
+                if (!secondId || secondId === this._teleportFirstId) {
+                    this.onBoosterTeleportPressed();
+                    return;
+                }
+
+                if (this._teleportFirstId) {
+                    this.fieldView.setBlockHighlight(this._teleportFirstId, false);
+                }
+
+                this.levelManager.useTeleport();
+                this.uiView.updateBoosterCounts(this.levelManager.bombCount, this.levelManager.teleportCount);
+
+                result = this._model.activateTeleport(this._teleportFirstRow, this._teleportFirstCol, row, col);
+                this.processMoveResult(result);
+
+                this._currentMode = InteractionMode.Normal;
                 break;
         }
     }
@@ -95,18 +152,46 @@ export default class GameController extends cc.Component {
     }
 
     public onBoosterBombPressed(): void {
-        if (this.fieldView.isAnimating || this.levelManager.getbombCount() <= 0) {
+        if (this.fieldView.isAnimating || this.levelManager.bombCount <= 0) {
             return;
         }
 
-        const isSelected: boolean = this._currentMode !== InteractionMode.BoosterBomb;
-        if (!isSelected) {
-            this._currentMode = InteractionMode.Normal;
-        } else {
+        const isTurningOn: boolean = this._currentMode !== InteractionMode.BoosterBomb;
+
+        if (isTurningOn) {
             this._currentMode = InteractionMode.BoosterBomb;
+
+            if (this._teleportFirstId) {
+                this.fieldView.setBlockHighlight(this._teleportFirstId, false);
+            }
+        } else {
+            this._currentMode = InteractionMode.Normal;
         }
 
-        this.uiView.setButtonState(this.uiView.bombButton, true, isSelected, false);
+        this.uiView.setButtonState(this.uiView.bombButton, true, isTurningOn, false);
+        this.uiView.setButtonState(this.uiView.teleportButton, true, false, isTurningOn);
+    }
+
+    public onBoosterTeleportPressed(): void {
+        if (this.fieldView.isAnimating) {
+            return;
+        }
+
+        const isTurningOn: boolean = this._currentMode !== InteractionMode.BoosterTeleportStep1
+            && this._currentMode !== InteractionMode.BoosterTeleportStep2;
+
+        if (isTurningOn) {
+            this._currentMode = InteractionMode.BoosterTeleportStep1;
+        } else {
+            this._currentMode = InteractionMode.Normal;
+
+            if (this._teleportFirstId) {
+                this.fieldView.setBlockHighlight(this._teleportFirstId, false);
+            }
+        }
+
+        this.uiView.setButtonState(this.uiView.teleportButton, true, isTurningOn, false);
+        this.uiView.setButtonState(this.uiView.bombButton, true, false, isTurningOn);
     }
 
     private processMoveResult(result: IMoveResult): void {
@@ -116,11 +201,22 @@ export default class GameController extends cc.Component {
         if (this._currentMode === InteractionMode.Normal) {
             const destroyedCount = result.destroyed.length;
 
-            if (destroyedCount === this.blocksCountForBomb) {
-                this.levelManager.addBomb();
+            const matchedCombo = this._comboScale.find(combo => destroyedCount >= combo.minBlocksCount);
+            if (matchedCombo) {
+                if (matchedCombo.rewardType === BoosterRewardType.Inventory) {
+                    if (matchedCombo.boosterType === BoosterType.Bomb) {
+                        this.levelManager.addBomb();
+                    }
+
+                    if (matchedCombo.boosterType === BoosterType.Teleport) {
+                        this.levelManager.addTeleport();
+                    }
+                } else {
+                    cc.log(`[Combo] Player gained on field booster: ${BoosterType[matchedCombo.boosterType]} for ${destroyedCount} blocks!`);
+                }
             }
 
-            this.uiView.updateBoosterCounts(this.levelManager.getbombCount());
+            this.uiView.updateBoosterCounts(this.levelManager.bombCount, this.levelManager.teleportCount);
         }
 
         this.fieldView.handleMoveResult(result, () => {

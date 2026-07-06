@@ -18,7 +18,20 @@ export enum GameState {
 
 export enum InteractionMode {
     Normal,
-    BoosterBomb
+    BoosterBomb,
+    BoosterTeleportStep1,
+    BoosterTeleportStep2
+}
+
+export enum BoosterRewardType {
+    Inventory,
+    OnField
+}
+
+export enum BoosterType {
+    None,
+    Teleport,
+    Bomb
 }
 
 export interface IBlockData {
@@ -33,6 +46,7 @@ export interface IFallingBlockInfo {
     fromRow: number;
     toRow: number;
     col: number;
+    isTeleport?: boolean;
 }
 
 export interface ISpawnedBlockInfo {
@@ -63,6 +77,7 @@ export interface ILevelConfig {
     scorePerBlock: number;
     availableColors: number[];
     bonusBombs?: number;
+    bonusTeleports?: number;
 }
 
 export interface IGameModel {

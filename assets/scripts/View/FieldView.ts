@@ -32,6 +32,7 @@ export default class FieldView extends cc.Component {
     private _startY: number = 0;
 
     private _rows: number = 0;
+    private _cols: number = 0;
 
     private _controller: GameController = null!;
 
@@ -39,6 +40,7 @@ export default class FieldView extends cc.Component {
 
     public initGrid(rows: number, cols: number, gridData: IBlockData[][], controller: GameController): void {
         this._rows = rows;
+        this._cols = cols;
         this._controller = controller;
 
         this.clearGrid();
@@ -91,6 +93,17 @@ export default class FieldView extends cc.Component {
                 callback();
             })
             .start();
+    }
+
+    public setBlockHighlight(blockId: string, isHighlighted: boolean): void {
+        const blockNode: cc.Node | undefined = this._blocks.get(blockId);
+        if (!blockNode) {
+            return;
+        }
+
+        blockNode.opacity = isHighlighted ? 150 : 255;
+
+        blockNode.scale = isHighlighted ? 0.9 : 1.0;
     }
 
     private _onAnimationsCompleteCallback: Function | null = null;
@@ -161,6 +174,16 @@ export default class FieldView extends cc.Component {
             return;
         }
 
+        let animationDuration = 0.3;
+        let easingType = "bounceOut";
+
+        if (this.isTeleportMovement(blockData)) {
+            animationDuration = 0.4;
+            easingType = "cubicOut";
+
+            block.setSiblingIndex(1000);
+        }
+
         const blockScript = block.getComponent(BlockView);
         if (blockScript) {
             blockScript.updateIndices(blockData.toRow, blockData.col);
@@ -171,8 +194,12 @@ export default class FieldView extends cc.Component {
         this._activeTweensCount++;
 
         cc.tween(block)
-            .to(0.3, { position: cc.v3(toX, toY) }, { easing: 'bounceOut' })
+            .to(animationDuration, { position: cc.v3(toX, toY) }, { easing: easingType })
             .call(() => {
+                if (this.isTeleportMovement(blockData)) {
+                    block.setSiblingIndex(blockData.toRow * this._cols + blockData.col);
+                }
+
                 this._activeTweensCount--;
                 if (this._activeTweensCount === 0) {
                     this.isAnimating = false;
@@ -183,6 +210,10 @@ export default class FieldView extends cc.Component {
                 }
             })
             .start();
+    }
+
+    private isTeleportMovement(blockData: IFallingBlockInfo | ISpawnedBlockInfo): boolean {
+        return 'isTeleport' in blockData && blockData.isTeleport === true;
     }
 
     private clearGrid(): void {

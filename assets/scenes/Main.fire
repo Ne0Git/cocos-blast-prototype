@@ -87,13 +87,13 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 64
-      },
-      {
-        "__id__": 65
-      },
-      {
         "__id__": 66
+      },
+      {
+        "__id__": 67
+      },
+      {
+        "__id__": 68
       }
     ],
     "_prefab": null,
@@ -223,6 +223,7 @@
       }
     ],
     "initialBombCount": 3,
+    "initialTeleportCount": 5,
     "_id": "dcDyAuhPNNXpsRiZlmIZhm"
   },
   {
@@ -526,7 +527,7 @@
     "blockPrefab": {
       "__uuid__": "0a827186-1da4-48db-abb2-46f1f829e8e6"
     },
-    "_spacing": 100,
+    "spacing": 100,
     "blockSprites": [
       {
         "__id__": 12
@@ -674,10 +675,10 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 62
+        "__id__": 64
       },
       {
-        "__id__": 63
+        "__id__": 65
       }
     ],
     "_prefab": null,
@@ -1694,7 +1695,7 @@
         "__id__": 44
       },
       {
-        "__id__": 52
+        "__id__": 54
       }
     ],
     "_active": true,
@@ -1863,6 +1864,9 @@
     "_components": [
       {
         "__id__": 51
+      },
+      {
+        "__id__": 52
       }
     ],
     "_prefab": null,
@@ -2235,6 +2239,88 @@
     "_id": "7cC8DpLxZCron6Ym/xPMdV"
   },
   {
+    "__type__": "cc.Button",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 44
+    },
+    "_enabled": true,
+    "_normalMaterial": null,
+    "_grayMaterial": null,
+    "duration": 0.1,
+    "zoomScale": 1.2,
+    "clickEvents": [
+      {
+        "__id__": 53
+      }
+    ],
+    "_N$interactable": true,
+    "_N$enableAutoGrayEffect": false,
+    "_N$transition": 0,
+    "transition": 0,
+    "_N$normalColor": {
+      "__type__": "cc.Color",
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "_N$pressedColor": {
+      "__type__": "cc.Color",
+      "r": 211,
+      "g": 211,
+      "b": 211,
+      "a": 255
+    },
+    "pressedColor": {
+      "__type__": "cc.Color",
+      "r": 211,
+      "g": 211,
+      "b": 211,
+      "a": 255
+    },
+    "_N$hoverColor": {
+      "__type__": "cc.Color",
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "hoverColor": {
+      "__type__": "cc.Color",
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "_N$disabledColor": {
+      "__type__": "cc.Color",
+      "r": 124,
+      "g": 124,
+      "b": 124,
+      "a": 255
+    },
+    "_N$normalSprite": null,
+    "_N$pressedSprite": null,
+    "pressedSprite": null,
+    "_N$hoverSprite": null,
+    "hoverSprite": null,
+    "_N$disabledSprite": null,
+    "_N$target": null,
+    "_id": "4cJe5adS9GlbpggNW5PULx"
+  },
+  {
+    "__type__": "cc.ClickEvent",
+    "target": {
+      "__id__": 2
+    },
+    "component": "",
+    "_componentId": "cefcb2TGK1C9ZSxZS+upMds",
+    "handler": "onBoosterTeleportPressed",
+    "customEventData": ""
+  },
+  {
     "__type__": "cc.Node",
     "_name": "BoosterSlotRight",
     "_objFlags": 0,
@@ -2243,19 +2329,19 @@
     },
     "_children": [
       {
-        "__id__": 53
+        "__id__": 55
       },
       {
-        "__id__": 55
+        "__id__": 57
       }
     ],
     "_active": true,
     "_components": [
       {
-        "__id__": 59
+        "__id__": 61
       },
       {
-        "__id__": 60
+        "__id__": 62
       }
     ],
     "_prefab": null,
@@ -2311,13 +2397,13 @@
     "_name": "BoosterIcon",
     "_objFlags": 0,
     "_parent": {
-      "__id__": 52
+      "__id__": 54
     },
     "_children": [],
     "_active": true,
     "_components": [
       {
-        "__id__": 54
+        "__id__": 56
       }
     ],
     "_prefab": null,
@@ -2373,7 +2459,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 53
+      "__id__": 55
     },
     "_enabled": true,
     "_materials": [
@@ -2405,17 +2491,17 @@
     "_name": "BoosterCount",
     "_objFlags": 0,
     "_parent": {
-      "__id__": 52
+      "__id__": 54
     },
     "_children": [
       {
-        "__id__": 56
+        "__id__": 58
       }
     ],
     "_active": true,
     "_components": [
       {
-        "__id__": 58
+        "__id__": 60
       }
     ],
     "_prefab": null,
@@ -2471,13 +2557,13 @@
     "_name": "BoosterCountText",
     "_objFlags": 0,
     "_parent": {
-      "__id__": 55
+      "__id__": 57
     },
     "_children": [],
     "_active": true,
     "_components": [
       {
-        "__id__": 57
+        "__id__": 59
       }
     ],
     "_prefab": null,
@@ -2533,7 +2619,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 56
+      "__id__": 58
     },
     "_enabled": true,
     "_materials": [
@@ -2568,7 +2654,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 55
+      "__id__": 57
     },
     "_enabled": true,
     "_materials": [
@@ -2600,7 +2686,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 52
+      "__id__": 54
     },
     "_enabled": true,
     "_materials": [
@@ -2632,7 +2718,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 52
+      "__id__": 54
     },
     "_enabled": true,
     "_normalMaterial": null,
@@ -2641,7 +2727,7 @@
     "zoomScale": 1.2,
     "clickEvents": [
       {
-        "__id__": 61
+        "__id__": 63
       }
     ],
     "_N$interactable": true,
@@ -2730,10 +2816,16 @@
       "__id__": 37
     },
     "bombButton": {
-      "__id__": 52
+      "__id__": 54
     },
     "bombCountLabel": {
-      "__id__": 57
+      "__id__": 59
+    },
+    "teleportButton": {
+      "__id__": 44
+    },
+    "teleportCountLabel": {
+      "__id__": 49
     },
     "_id": "44rG1S5nNNVZSCCBaUlVbA"
   },
@@ -2820,13 +2912,32 @@
       "__id__": 11
     },
     "uiView": {
-      "__id__": 62
+      "__id__": 64
     },
     "levelManager": {
       "__id__": 4
     },
     "bombRadius": 1,
-    "blocksCountForBomb": 5,
+    "comboSettings": [
+      {
+        "__id__": 69
+      },
+      {
+        "__id__": 70
+      }
+    ],
     "_id": "bc7s7uyx5GKo5NvSiBEZtj"
+  },
+  {
+    "__type__": "ComboBoosterMapping",
+    "minBlocksCount": 5,
+    "boosterType": 2,
+    "rewardType": 0
+  },
+  {
+    "__type__": "ComboBoosterMapping",
+    "minBlocksCount": 6,
+    "boosterType": 1,
+    "rewardType": 0
   }
 ]

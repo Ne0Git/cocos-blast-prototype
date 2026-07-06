@@ -22,6 +22,12 @@ export default class UIView extends cc.Component {
     @property(cc.Label)
     public bombCountLabel: cc.Label = null!;
 
+    @property(cc.Node)
+    public teleportButton: cc.Node = null!
+
+    @property(cc.Label)
+    public teleportCountLabel: cc.Label = null!;
+
     private readonly ACTIVE_COLOR = cc.color(255, 255, 255);
     private readonly INACTIVE_COLOR = cc.color(120, 120, 120);
 
@@ -57,12 +63,18 @@ export default class UIView extends cc.Component {
         }
     }
 
-    public updateBoosterCounts(bombs: number): void {
+    public updateBoosterCounts(bombs: number, teleports: number): void {
         if (this.bombCountLabel) {
             this.bombCountLabel.string = bombs.toString();
         }
 
         this.setButtonState(this.bombButton, bombs > 0, false, false);
+
+        if (this.teleportCountLabel) {
+            this.teleportCountLabel.string = teleports.toString();
+        }
+
+        this.setButtonState(this.teleportButton, teleports > 0, false, false);
     }
 
     public setButtonState(buttonNode: cc.Node, isAvailable: boolean, isSelected: boolean, isAnotherSelected: boolean): void {

@@ -37,6 +37,10 @@
     "bonusBombs": {
       "type": "integer",
       "minimum": 0
+    },
+    "bonusTeleports": {
+      "type": "integer",
+      "minimum": 0
     }
   },
   "required": [
