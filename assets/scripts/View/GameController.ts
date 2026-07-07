@@ -168,8 +168,8 @@ export default class GameController extends cc.Component {
             this._currentMode = InteractionMode.Normal;
         }
 
-        this.uiView.setButtonState(this.uiView.bombButton, true, isTurningOn, false);
-        this.uiView.setButtonState(this.uiView.teleportButton, true, false, isTurningOn);
+        this.uiView.setButtonState(this.uiView.bombButton, this.levelManager.bombCount > 0, isTurningOn, false);
+        this.uiView.setButtonState(this.uiView.teleportButton, this.levelManager.teleportCount > 0, false, isTurningOn);
     }
 
     public onBoosterTeleportPressed(): void {
@@ -190,8 +190,8 @@ export default class GameController extends cc.Component {
             }
         }
 
-        this.uiView.setButtonState(this.uiView.teleportButton, true, isTurningOn, false);
-        this.uiView.setButtonState(this.uiView.bombButton, true, false, isTurningOn);
+        this.uiView.setButtonState(this.uiView.teleportButton, this.levelManager.teleportCount > 0, isTurningOn, false);
+        this.uiView.setButtonState(this.uiView.bombButton, this.levelManager.bombCount > 0, false, isTurningOn);
     }
 
     private processMoveResult(result: IMoveResult): void {

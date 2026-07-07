@@ -1,4 +1,5 @@
 import { GameState } from "../Core/Contracts";
+import PopupView from "./PopupView";
 
 const { ccclass, property } = cc._decorator;
 
@@ -45,21 +46,21 @@ export default class UIView extends cc.Component {
 
     public hideScreens(): void {
         if (this.winScreen) {
-            this.winScreen.active = false;
+            this.hidePopup(this.winScreen);
         }
 
         if (this.loseScreen) {
-            this.loseScreen.active = false;
+            this.hidePopup(this.loseScreen);
         }
     }
 
     public handleGameState(state: GameState): void {
         if (state === GameState.Win && this.winScreen) {
-            this.winScreen.active = true;
+            this.showPopup(this.winScreen);
         }
 
         if (state === GameState.Lose && this.loseScreen) {
-            this.loseScreen.active = true;
+            this.showPopup(this.loseScreen);
         }
     }
 
@@ -86,8 +87,14 @@ export default class UIView extends cc.Component {
         let color = this.ACTIVE_COLOR;
         let scale = 1.0;
 
-        if (!isAvailable || isAnotherSelected) {
+        if (isAnotherSelected) {
+            color = cc.color(160, 160, 160);
+            scale = 0.95;
+        }
+
+        if (!isAvailable) {
             color = this.INACTIVE_COLOR;
+            scale = 1.0;
         }
 
         if (isSelected) {
@@ -96,5 +103,19 @@ export default class UIView extends cc.Component {
 
         buttonNode.color = color;
         cc.tween(buttonNode).to(0.15, { scale: scale }).start();
+    }
+
+    private showPopup(popupNode: cc.Node): void {
+        const popupScript = popupNode.getComponent(PopupView);
+        if (popupScript) {
+            popupScript.showPopup();
+        }
+    }
+
+    private hidePopup(popupNode: cc.Node): void {
+        const popupScript = popupNode.getComponent(PopupView);
+        if (popupScript) {
+            popupScript.hidePopup();
+        }
     }
 }
