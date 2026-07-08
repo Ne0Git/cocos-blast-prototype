@@ -3,6 +3,7 @@ import { BoosterRewardType, BoosterType, ILevelConfig, IMoveResult, InteractionM
 import FieldView from "./FieldView";
 import UIView from "./UIView";
 import LevelManager from "../Infrastructure/LevelManager";
+import AudioManager from "../Infrastructure/AudioManager";
 
 const { ccclass, property } = cc._decorator;
 
@@ -143,11 +144,13 @@ export default class GameController extends cc.Component {
     }
 
     public onNextLevelPressed(): void {
+        AudioManager.instance.playSFX(AudioManager.instance.uiClick);
         this.levelManager.nextLevel();
         this.startGame();
     }
 
     public onRestartLevelPressed(): void {
+        AudioManager.instance.playSFX(AudioManager.instance.uiClick);
         this.startGame();
     }
 
@@ -155,6 +158,8 @@ export default class GameController extends cc.Component {
         if (this.fieldView.isAnimating || this.levelManager.bombCount <= 0) {
             return;
         }
+
+        AudioManager.instance.playSFX(AudioManager.instance.uiClick);
 
         const isTurningOn: boolean = this._currentMode !== InteractionMode.BoosterBomb;
 
@@ -176,6 +181,8 @@ export default class GameController extends cc.Component {
         if (this.fieldView.isAnimating) {
             return;
         }
+
+        AudioManager.instance.playSFX(AudioManager.instance.uiClick);
 
         const isTurningOn: boolean = this._currentMode !== InteractionMode.BoosterTeleportStep1
             && this._currentMode !== InteractionMode.BoosterTeleportStep2;
@@ -201,8 +208,13 @@ export default class GameController extends cc.Component {
         if (this._currentMode === InteractionMode.Normal) {
             const destroyedCount = result.destroyed.length;
 
+            if (destroyedCount > 0) {
+                AudioManager.instance.playSFX(AudioManager.instance.blast);
+            }
+
             const matchedCombo = this._comboScale.find(combo => destroyedCount >= combo.minBlocksCount);
             if (matchedCombo) {
+                AudioManager.instance.playSFX(AudioManager.instance.reward);
                 if (matchedCombo.rewardType === BoosterRewardType.Inventory) {
                     if (matchedCombo.boosterType === BoosterType.Bomb) {
                         this.levelManager.addBomb();
@@ -217,6 +229,10 @@ export default class GameController extends cc.Component {
             }
 
             this.uiView.updateBoosterCounts(this.levelManager.bombCount, this.levelManager.teleportCount);
+        } else if (this._currentMode === InteractionMode.BoosterBomb) {
+            AudioManager.instance.playSFX(AudioManager.instance.explosion);
+        } else if (this._currentMode === InteractionMode.BoosterTeleportStep2) {
+            AudioManager.instance.playSFX(AudioManager.instance.teleport);
         }
 
         this.fieldView.handleMoveResult(result, () => {

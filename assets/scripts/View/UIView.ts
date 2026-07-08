@@ -1,4 +1,5 @@
 import { GameState } from "../Core/Contracts";
+import AudioManager from "../Infrastructure/AudioManager";
 import PopupView from "./PopupView";
 
 const { ccclass, property } = cc._decorator;
@@ -56,10 +57,12 @@ export default class UIView extends cc.Component {
 
     public handleGameState(state: GameState): void {
         if (state === GameState.Win && this.winScreen) {
+            AudioManager.instance.playSFX(AudioManager.instance.win);
             this.showPopup(this.winScreen);
         }
 
         if (state === GameState.Lose && this.loseScreen) {
+            AudioManager.instance.playSFX(AudioManager.instance.lose);
             this.showPopup(this.loseScreen);
         }
     }
