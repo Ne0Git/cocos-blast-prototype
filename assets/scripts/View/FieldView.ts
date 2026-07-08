@@ -181,7 +181,7 @@ export default class FieldView extends cc.Component {
             animationDuration = 0.4;
             easingType = "cubicOut";
 
-            block.setSiblingIndex(1000);
+            block.setSiblingIndex(blockData.fromRow > blockData.toRow ? 999 : 998);
         }
 
         const blockScript = block.getComponent(BlockView);
