@@ -56,6 +56,24 @@ export default class AudioManager extends cc.Component {
 
     protected start(): void {
         this.playMusic();
+
+        const resumeAudio = () => {
+            if (cc.sys.isBrowser) {
+                // @ts-ignore
+                const ctx = cc.audioEngine._audioContext || (window.AudioContext || window.webkitAudioContext);
+                if (ctx && ctx.state === 'suspended') {
+                    ctx.resume().then(() => {
+                        cc.log("[AudioManager] Audio context resumed after click!");
+                        if (this._musicAudioId === -1) {
+                            this.playMusic();
+                        }
+                    });
+                }
+            }
+            cc.Canvas.instance.node.off(cc.Node.EventType.TOUCH_START, resumeAudio);
+        };
+
+        cc.Canvas.instance.node.on(cc.Node.EventType.TOUCH_START, resumeAudio);
     }
 
     public playMusic(): void {
@@ -79,9 +97,17 @@ export default class AudioManager extends cc.Component {
         cc.audioEngine.playEffect(clip, false);
     }
 
+    public get musicVolume(): number {
+        return this._musicVolume;
+    }
+
     public setMusicVolume(value: number): void {
         this._musicVolume = Math.max(0, Math.min(1, value));
         cc.audioEngine.setMusicVolume(this._musicVolume);
+    }
+
+    public get sfxVolume(): number {
+        return this._sfxVolume;
     }
 
     public setSFXVolume(value: number): void {

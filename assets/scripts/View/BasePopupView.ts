@@ -1,14 +1,14 @@
 const { ccclass, property } = cc._decorator;
 
 @ccclass
-export default class PopupView extends cc.Component {
+export default class BasePopupView extends cc.Component {
     @property(cc.Node)
     public background: cc.Node = null!;
 
     @property(cc.Node)
     public dialog: cc.Node = null!;
 
-    public showPopup(): void {
+    public show(): void {
         this.node.active = true;
         this.node.opacity = 255;
 
@@ -19,11 +19,15 @@ export default class PopupView extends cc.Component {
 
         if (this.dialog) {
             this.dialog.scale = 0;
-            cc.tween(this.dialog).to(0.3, { scale: 1.0 }, { easing: 'backOut' }).start();
+            cc.tween(this.dialog).to(0.3, { scale: 1.0 }, { easing: 'backOut' })
+                .call(() => this.onShowCompleted())
+                .start();
+        } else {
+            this.onShowCompleted();
         }
     }
 
-    public hidePopup(): void {
+    public hide(): void {
         if (this.background) {
             cc.tween(this.background).to(0.15, { opacity: 0 }).start();
         }
@@ -35,5 +39,9 @@ export default class PopupView extends cc.Component {
                 })
                 .start();
         }
+    }
+
+    protected onShowCompleted() {
+        // pass
     }
 }

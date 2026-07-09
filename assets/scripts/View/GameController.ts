@@ -201,6 +201,11 @@ export default class GameController extends cc.Component {
         this.uiView.setButtonState(this.uiView.bombButton, this.levelManager.bombCount > 0, false, isTurningOn);
     }
 
+    public onSettingsPressed(): void {
+        AudioManager.instance.playSFX(AudioManager.instance.uiClick);
+        this.uiView.showSettings();
+    }
+
     private processMoveResult(result: IMoveResult): void {
         this.uiView.updateScore(this._model.currentScore, this._model.targetScore);
         this.uiView.updateMoves(this._model.movesLeft);

@@ -1,6 +1,6 @@
 import { GameState } from "../Core/Contracts";
 import AudioManager from "../Infrastructure/AudioManager";
-import PopupView from "./PopupView";
+import BasePopupView from "./BasePopupView";
 
 const { ccclass, property } = cc._decorator;
 
@@ -29,6 +29,9 @@ export default class UIView extends cc.Component {
 
     @property(cc.Label)
     public teleportCountLabel: cc.Label = null!;
+
+    @property(cc.Node)
+    public settingsScreen: cc.Node = null!;
 
     private readonly ACTIVE_COLOR = cc.color(255, 255, 255);
     private readonly INACTIVE_COLOR = cc.color(120, 120, 120);
@@ -108,17 +111,23 @@ export default class UIView extends cc.Component {
         cc.tween(buttonNode).to(0.15, { scale: scale }).start();
     }
 
+    public showSettings(): void {
+        if (this.settingsScreen) {
+            this.showPopup(this.settingsScreen);
+        }
+    }
+
     private showPopup(popupNode: cc.Node): void {
-        const popupScript = popupNode.getComponent(PopupView);
+        const popupScript = popupNode.getComponent(BasePopupView);
         if (popupScript) {
-            popupScript.showPopup();
+            popupScript.show();
         }
     }
 
     private hidePopup(popupNode: cc.Node): void {
-        const popupScript = popupNode.getComponent(PopupView);
+        const popupScript = popupNode.getComponent(BasePopupView);
         if (popupScript) {
-            popupScript.hidePopup();
+            popupScript.hide();
         }
     }
 }
