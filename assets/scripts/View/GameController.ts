@@ -1,5 +1,5 @@
 import { GameModel } from "../Core/GameModel";
-import { BoosterRewardType, BoosterType, ILevelConfig, IMoveResult, InteractionMode } from "../Core/Contracts";
+import { BoosterRewardType, BoosterType, GameState, IBlockData, ILevelConfig, IMoveResult, InteractionMode } from "../Core/Contracts";
 import FieldView from "./FieldView";
 import UIView from "./UIView";
 import LevelManager from "../Infrastructure/LevelManager";
@@ -210,38 +210,67 @@ export default class GameController extends cc.Component {
         this.uiView.updateScore(this._model.currentScore, this._model.targetScore);
         this.uiView.updateMoves(this._model.movesLeft);
 
-        if (this._currentMode === InteractionMode.Normal) {
-            const destroyedCount = result.destroyed.length;
+        this.handleMoveAudio(result);
+        this.handleComboRewards(result);
 
-            if (destroyedCount > 0) {
-                AudioManager.instance.playSFX(AudioManager.instance.blast);
-            }
+        this.fieldView.handleMoveResult(result, () => {
+            this.handlePostmoveChecks(result);
+        });
+    }
 
-            const matchedCombo = this._comboScale.find(combo => destroyedCount >= combo.minBlocksCount);
-            if (matchedCombo) {
-                AudioManager.instance.playSFX(AudioManager.instance.reward);
-                if (matchedCombo.rewardType === BoosterRewardType.Inventory) {
-                    if (matchedCombo.boosterType === BoosterType.Bomb) {
-                        this.levelManager.addBomb();
-                    }
-
-                    if (matchedCombo.boosterType === BoosterType.Teleport) {
-                        this.levelManager.addTeleport();
-                    }
-                } else {
-                    cc.log(`[Combo] Player gained on field booster: ${BoosterType[matchedCombo.boosterType]} for ${destroyedCount} blocks!`);
-                }
-            }
-
-            this.uiView.updateBoosterCounts(this.levelManager.bombCount, this.levelManager.teleportCount);
+    private handleMoveAudio(result: IMoveResult): void {
+        if (this._currentMode === InteractionMode.Normal && result.destroyed.length > 0) {
+            AudioManager.instance.playSFX(AudioManager.instance.blast);
         } else if (this._currentMode === InteractionMode.BoosterBomb) {
             AudioManager.instance.playSFX(AudioManager.instance.explosion);
         } else if (this._currentMode === InteractionMode.BoosterTeleportStep2) {
             AudioManager.instance.playSFX(AudioManager.instance.teleport);
         }
+    }
 
-        this.fieldView.handleMoveResult(result, () => {
+    private handleComboRewards(result: IMoveResult): void {
+        if (this._currentMode !== InteractionMode.Normal) {
+            return;
+        }
+
+        const destroyedCount = result.destroyed.length;
+        const matchedCombo = this._comboScale.find(combo => destroyedCount >= combo.minBlocksCount);
+
+        if (!matchedCombo) {
+            return;
+        }
+
+        AudioManager.instance.playSFX(AudioManager.instance.reward);
+
+        if (matchedCombo.rewardType === BoosterRewardType.Inventory) {
+            if (matchedCombo.boosterType === BoosterType.Bomb) {
+                this.levelManager.addBomb();
+            }
+
+            if (matchedCombo.boosterType === BoosterType.Teleport) {
+                this.levelManager.addTeleport();
+            }
+        } else {
+            cc.log(`[Combo] Player gained on field booster: ${BoosterType[matchedCombo.boosterType]} for ${destroyedCount} blocks!`);
+        }
+
+        this.uiView.updateBoosterCounts(this.levelManager.bombCount, this.levelManager.teleportCount);
+    }
+
+    private handlePostmoveChecks(result: IMoveResult): void {
+        if (result.gameState === GameState.Playing && !this._model.canMakeMove()) {
+            if (this._model.shufflesCount > 0) {
+                const newGridData: IBlockData[] = this._model.shuffle();
+
+                this.fieldView.shuffle(newGridData, () => {
+                    this.uiView.handleGameState(this._model.gameState);
+                });
+            } else {
+                this._model.gameState = GameState.Lose
+                this.uiView.handleGameState(GameState.Lose);
+            }
+        } else {
             this.uiView.handleGameState(result.gameState);
-        });
+        }
     }
 }

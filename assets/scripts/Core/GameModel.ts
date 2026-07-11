@@ -9,6 +9,8 @@ export class GameModel implements IGameModel {
     public targetScore: number = 0;
     public gameState: GameState = GameState.Playing;
 
+    public shufflesCount: number = 3;
+
     private _grid: IBlockData[][] = [];
 
     private _availableColors: BlockType[] = [
@@ -32,6 +34,7 @@ export class GameModel implements IGameModel {
         this.targetScore = config.targetScore;
         this._scorePerBlock = config.scorePerBlock;
         this._availableColors = config.availableColors;
+        this.shufflesCount = config.maxShuffles || 3;
         this.currentScore = 0;
         this.gameState = GameState.Playing;
 
@@ -156,6 +159,61 @@ export class GameModel implements IGameModel {
         };
     }
 
+    public shuffle(): IBlockData[] {
+        if (this.shufflesCount <= 0) {
+            this.gameState = GameState.Lose;
+            return [];
+        }
+
+        this.shufflesCount--;
+        let safetyCounter = 0;
+        const maxAttempts = 100;
+
+        let result: IBlockData[] = [];
+
+        do {
+            const flatBlocks: { type: BlockType, id: string }[] = [];
+            for (let r = 0; r < this.rows; r++) {
+                for (let c = 0; c < this.cols; c++) {
+                    if (this._grid[r][c].type !== BlockType.None) {
+                        flatBlocks.push({
+                            type: this._grid[r][c].type,
+                            id: this._grid[r][c].id,
+                        });
+                    }
+                }
+            }
+
+            for (let i = flatBlocks.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [flatBlocks[i], flatBlocks[j]] = [flatBlocks[j], flatBlocks[i]];
+            }
+
+            let index = 0;
+            result = []
+
+            for (let r = 0; r < this.rows; r++) {
+                for (let c = 0; c < this.cols; c++) {
+                    if (this._grid[r][c].type !== BlockType.None) {
+                        this._grid[r][c].type = flatBlocks[index].type;
+                        this._grid[r][c].id = flatBlocks[index].id;
+                        index++;
+                    }
+
+                    result.push({ ...this._grid[r][c] });
+                }
+            }
+
+            safetyCounter++;
+        } while (!this.canMakeMove() && safetyCounter < maxAttempts);
+
+        if (!this.canMakeMove()) {
+            this.gameState = GameState.Lose;
+        }
+
+        return result;
+    }
+
     private generateValidGrid(): void {
         do {
             this._grid = [];
@@ -229,7 +287,7 @@ export class GameModel implements IGameModel {
     private updateGameState(): void {
         if (this.currentScore >= this.targetScore) {
             this.gameState = GameState.Win;
-        } else if (this.movesLeft <= 0 || !this.canMakeMove()) {
+        } else if (this.movesLeft <= 0 || !this.canMakeMove() && this.shufflesCount <= 0) {
             this.gameState = GameState.Lose;
         }
     }

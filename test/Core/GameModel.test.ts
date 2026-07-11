@@ -70,4 +70,24 @@ describe("GameModel - Core Loop", () => {
 
         expect(result.destroyed.length).toBe(9);
     });
+
+    it("Should reshuffle the board when  there are no available moves", () => {
+        const model = new GameModel();
+
+        const deadlockGrid = [
+            [BlockType.Red, BlockType.Blue, BlockType.Red],
+            [BlockType.Blue, BlockType.Red, BlockType.Blue],
+            [BlockType.Red, BlockType.Blue, BlockType.Red]
+        ]
+
+        model.init(createTestConfig({ availableColors: [BlockType.Red, BlockType.Blue] }));
+        model.setGridForTesting(deadlockGrid);
+
+        expect(model.canMakeMove()).toBe(false);
+
+        const shuffleResult = model.shuffle();
+
+        expect(model.canMakeMove()).toBe(true);
+        expect(shuffleResult.length).toBe(9);
+    });
 });

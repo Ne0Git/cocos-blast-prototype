@@ -41,6 +41,10 @@
     "bonusTeleports": {
       "type": "integer",
       "minimum": 0
+    },
+    "maxShuffles": {
+      "type": "integer",
+      "minimum": 0
     }
   },
   "required": [

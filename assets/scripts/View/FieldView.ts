@@ -55,7 +55,7 @@ export default class FieldView extends cc.Component {
         }
     }
 
-    public handleMoveResult(result: IMoveResult, callback: Function): void {
+    public handleMoveResult(result: IMoveResult, callback: () => void): void {
         this.isAnimating = true;
         this._activeTweensCount = 0;
 
@@ -73,7 +73,7 @@ export default class FieldView extends cc.Component {
         }
     }
 
-    public animateBombPlacement(blockId: string, callback: Function): void {
+    public animateBombPlacement(blockId: string, callback: () => void): void {
         let targetNode: cc.Node | undefined = this._blocks.get(blockId);
 
         if (!targetNode) {
@@ -106,7 +106,63 @@ export default class FieldView extends cc.Component {
         blockNode.scale = isHighlighted ? 0.9 : 1.0;
     }
 
-    private _onAnimationsCompleteCallback: Function | null = null;
+    public shuffle(blockData: IBlockData[], callback: () => void): void {
+        this.isAnimating = true;
+        this._activeTweensCount = 0;
+
+        const centerPos = { x: 0, y: 0 };
+        let finishedFirstPhase = 0;
+        const totalBlocks = this._blocks.size;
+
+        this._blocks.forEach(block => {
+            this._activeTweensCount++;
+
+            block.setSiblingIndex(1000);
+
+            cc.tween(block)
+                .to(0.3, { position: cc.v3(centerPos.x, centerPos.y), scale: 0.4, angle: 180 }, { easing: 'cubicIn' })
+                .call(() => {
+                    finishedFirstPhase++;
+
+                    if (finishedFirstPhase === totalBlocks) {
+                        blockData.forEach(blockInfo => {
+                            const outBlock = this._blocks.get(blockInfo.id);
+                            if (!outBlock) {
+                                return;
+                            }
+
+                            this.applyBlockSprite(outBlock, blockInfo.type);
+
+                            const blockScript = outBlock.getComponent(BlockView);
+                            if (blockScript) {
+                                blockScript.updateIndices(blockInfo.row, blockInfo.col);
+                            }
+
+                            const { x: toX, y: toY } = this.getFieldPosByIndexes(blockInfo.row, blockInfo.col);
+
+                            cc.tween(outBlock)
+                                .to(0.4, { position: cc.v3(toX, toY), scale: 1.0, angle: 0 }, { easing: 'bounceOut' })
+                                .call(() => {
+                                    outBlock.setSiblingIndex(blockInfo.row * this._cols + blockInfo.col);
+
+                                    this._activeTweensCount--;
+                                    if (this._activeTweensCount === 0) {
+                                        this.isAnimating = false;
+
+                                        if (callback) {
+                                            callback();
+                                        }
+                                    }
+                                })
+                                .start();
+                        });
+                    }
+                })
+                .start();
+        });
+    }
+
+    private _onAnimationsCompleteCallback: (() => void) | null = null;
 
     private spawnBlock(row: number, col: number, id: string, type: BlockType): void {
         const { x, y } = this.getFieldPosByIndexes(row, col);
@@ -181,7 +237,7 @@ export default class FieldView extends cc.Component {
             animationDuration = 0.4;
             easingType = "cubicOut";
 
-            block.setSiblingIndex(blockData.fromRow > blockData.toRow ? 999 : 998);
+            block.setSiblingIndex(1000);
         }
 
         const blockScript = block.getComponent(BlockView);

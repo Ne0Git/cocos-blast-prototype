@@ -78,6 +78,7 @@ export interface ILevelConfig {
     availableColors: number[];
     bonusBombs?: number;
     bonusTeleports?: number;
+    maxShuffles?: number;
 }
 
 export interface IGameModel {
@@ -91,4 +92,5 @@ export interface IGameModel {
     init(config: ILevelConfig): void;
     clickTile(row: number, col: number): IMoveResult;
     canMakeMove(): boolean;
+    shuffle(): IBlockData[];
 }
