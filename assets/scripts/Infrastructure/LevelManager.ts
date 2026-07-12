@@ -14,6 +14,7 @@ export default class LemelManager extends cc.Component {
     public initialTeleportCount: number = 1;
 
     private _currentLevelIndex: number = 0;
+    private _randomIndex: number = -1;
 
     private _bombCount: number = 0;
     private _teleportCount: number = 0;
@@ -33,8 +34,8 @@ export default class LemelManager extends cc.Component {
         if (this._currentLevelIndex < this.levels.length) {
             jsonAsset = this.levels[this._currentLevelIndex];
         } else {
-            const randomIndex = Math.floor(Math.random() * this.levels.length);
-            jsonAsset = this.levels[randomIndex];
+            this._randomIndex = this._randomIndex >= 0 ? this._randomIndex : Math.floor(Math.random() * this.levels.length);
+            jsonAsset = this.levels[this._randomIndex];
         }
 
         return jsonAsset.json as ILevelConfig;
@@ -42,6 +43,7 @@ export default class LemelManager extends cc.Component {
 
     public nextLevel(): void {
         this._currentLevelIndex++;
+        this._randomIndex = -1;
     }
 
     public get bombCount(): number {

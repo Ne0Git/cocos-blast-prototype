@@ -23,7 +23,7 @@
         "__id__": 6
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [],
     "_prefab": null,
     "_opacity": 255,
@@ -6306,7 +6306,7 @@
       "ctor": "Float64Array",
       "array": [
         0,
-        0,
+        60,
         0,
         0,
         0,
@@ -7204,7 +7204,7 @@
       "ctor": "Float64Array",
       "array": [
         0,
-        0,
+        60,
         0,
         0,
         0,
@@ -7958,6 +7958,9 @@
     },
     "levelManager": {
       "__id__": 8
+    },
+    "notificationPrefab": {
+      "__uuid__": "c7959e2f-2c1c-40dd-a77e-46d7705b46ee"
     },
     "bombRadius": 1,
     "comboSettings": [

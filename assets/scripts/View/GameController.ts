@@ -4,6 +4,7 @@ import FieldView from "./FieldView";
 import UIView from "./UIView";
 import LevelManager from "../Infrastructure/LevelManager";
 import AudioManager from "../Infrastructure/AudioManager";
+import NotificationView from "./NotificationView";
 
 const { ccclass, property } = cc._decorator;
 
@@ -29,6 +30,9 @@ export default class GameController extends cc.Component {
 
     @property(LevelManager)
     public levelManager: LevelManager = null!;
+
+    @property(cc.Prefab)
+    public notificationPrefab: cc.Prefab = null!;
 
     @property({ type: cc.Integer, min: 1 })
     public bombRadius: number = 1;
@@ -62,10 +66,12 @@ export default class GameController extends cc.Component {
 
         if (config.bonusBombs && config.bonusBombs > 0) {
             this.levelManager.addBomb(config.bonusBombs);
+            this.spawnBoosterNotification(`+${config.bonusBombs}`, this.uiView.bombButton);
         }
 
         if (config.bonusTeleports && config.bonusTeleports > 0) {
             this.levelManager.addTeleport(config.bonusTeleports);
+            this.spawnBoosterNotification(`+${config.bonusTeleports}`, this.uiView.teleportButton);
         }
 
         this.uiView.updateScore(this._model.currentScore, this._model.targetScore);
@@ -75,6 +81,20 @@ export default class GameController extends cc.Component {
 
         const typeGrid = this._model.getGridSnapshot();
         this.fieldView.initGrid(config.rows, config.cols, typeGrid, this);
+
+        this.fieldView.isAnimating = true;
+
+        const container = this.uiView.node;
+        const notif = cc.instantiate(this.notificationPrefab);
+        container.addChild(notif);
+
+        const notifScript = notif.getComponent(NotificationView);
+        if (notifScript) {
+            const levelText = `Уровень ${this.levelManager.getCurrentLevelNumber()}`;
+            notifScript.show(levelText, cc.v2(0, -container.getContentSize().height / 2), 0, 1.2, () => {
+                this.fieldView.isAnimating = false;
+            })
+        }
     }
 
     public onBlockClicked(row: number, col: number): void {
@@ -259,10 +279,12 @@ export default class GameController extends cc.Component {
         if (matchedCombo.rewardType === BoosterRewardType.Inventory) {
             if (matchedCombo.boosterType === BoosterType.Bomb) {
                 this.levelManager.addBomb();
+                this.spawnBoosterNotification("+1", this.uiView.bombButton);
             }
 
             if (matchedCombo.boosterType === BoosterType.Teleport) {
                 this.levelManager.addTeleport();
+                this.spawnBoosterNotification("+1", this.uiView.teleportButton);
             }
         } else {
             if (typeof clickedRow !== 'number' || typeof clickedCol !== 'number') {
@@ -293,6 +315,19 @@ export default class GameController extends cc.Component {
             }
         } else {
             this.uiView.handleGameState(result.gameState);
+        }
+    }
+
+    private spawnBoosterNotification(text: string, container: cc.Node): void {
+        const notif = cc.instantiate(this.notificationPrefab);
+        container.addChild(notif);
+
+        const startPos = cc.v2(container.getContentSize().width / 6, -container.getContentSize().height / 2);
+        const targetY = -container.getContentSize().height / 4;
+
+        const notifScript = notif.getComponent(NotificationView);
+        if (notifScript) {
+            notifScript.show(text, startPos, targetY, 0.3);
         }
     }
 }
