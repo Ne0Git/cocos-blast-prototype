@@ -1,6 +1,7 @@
 import { BlockType, IBlockData, IFallingBlockInfo, IMoveResult, ISpawnedBlockInfo } from "../Core/Contracts";
 import GameController from "./GameController";
 import BlockView from "./BlockView";
+import PoolManager from "../Infrastructure/PoolManager";
 
 const { ccclass, property } = cc._decorator;
 
@@ -15,9 +16,6 @@ class BlockSpriteMapping {
 
 @ccclass
 export default class FieldView extends cc.Component {
-    @property(cc.Prefab)
-    public blockPrefab: cc.Node = null!;
-
     @property({ type: cc.Integer, min: 1 })
     public spacing: number = 100;
 
@@ -146,7 +144,7 @@ export default class FieldView extends cc.Component {
         cc.tween(rocketClone)
             .to(0.2, { position: cc.v3(firstPoint) }, { easing: 'cubicIn' })
             .call(() => {
-                rocketClone.destroy();
+                PoolManager.instance.returnBlockNode(rocketClone);
                 this._blocks.delete(cloneId);
             })
             .start();
@@ -238,12 +236,12 @@ export default class FieldView extends cc.Component {
 
     private spawnBlock(row: number, col: number, id: string, type: BlockType): cc.Node {
         const { x, y } = this.getFieldPosByIndexes(row, col);
-        const newBlock = cc.instantiate(this.blockPrefab);
+        const newBlock = PoolManager.instance.getBlockNode();
         newBlock.setPosition(x, y);
 
         this.applyBlockSprite(newBlock, type);
 
-        const blockScript = newBlock.addComponent(BlockView);
+        const blockScript = newBlock.getComponent(BlockView);
         blockScript.setup(row, col, (clickedRow, clickedCol) => {
             if (!this.isAnimating) {
                 this._controller.onBlockClicked(clickedRow, clickedCol);
@@ -279,7 +277,7 @@ export default class FieldView extends cc.Component {
         for (const blockData of destroyed) {
             const block: cc.Node | undefined = this._blocks.get(blockData.id);
             if (block) {
-                block.destroy();
+                PoolManager.instance.returnBlockNode(block);
                 this._blocks.delete(blockData.id);
             }
         }
@@ -351,7 +349,7 @@ export default class FieldView extends cc.Component {
     private clearGrid(): void {
         this._blocks.forEach(block => {
             if (cc.isValid(block)) {
-                block.destroy();
+                PoolManager.instance.returnBlockNode(block);
             }
         });
         this._blocks.clear();

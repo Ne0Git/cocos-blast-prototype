@@ -11,7 +11,7 @@ export default class BlockView extends cc.Component {
         this.node.on(cc.Node.EventType.TOUCH_END, this.onNodeClicked, this);
     }
 
-    public setup(row: number, col:number, onClick: (row: number, col: number) => void): void {
+    public setup(row: number, col: number, onClick: (row: number, col: number) => void): void {
         this.row = row;
         this.col = col;
         this._onClickCallback = onClick;
