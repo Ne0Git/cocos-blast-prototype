@@ -56,7 +56,6 @@ describe("GameModel - Core Loop", () => {
     });
 
     it("Should destroy blocks in radius R when bomb is activated", () => {
-        const model = new GameModel();
         const testGrid = [
             [BlockType.Red, BlockType.Red, BlockType.Red],
             [BlockType.Red, BlockType.Red, BlockType.Red],
@@ -72,8 +71,6 @@ describe("GameModel - Core Loop", () => {
     });
 
     it("Should reshuffle the board when  there are no available moves", () => {
-        const model = new GameModel();
-
         const deadlockGrid = [
             [BlockType.Red, BlockType.Blue, BlockType.Red],
             [BlockType.Blue, BlockType.Red, BlockType.Blue],
@@ -89,5 +86,21 @@ describe("GameModel - Core Loop", () => {
 
         expect(model.canMakeMove()).toBe(true);
         expect(shuffleResult.length).toBe(9);
+    });
+
+    it("Should destroy an entire row when horizontal rocket is activated", () => {
+        const testGrid = [
+            [BlockType.Red, BlockType.Blue, BlockType.Red],
+            [BlockType.Blue, BlockType.RocketHorizontal, BlockType.Blue],
+            [BlockType.Red, BlockType.Blue, BlockType.Red]
+        ];
+
+        model.init(createTestConfig({ availableColors: [BlockType.Red, BlockType.Blue] }));
+        model.setGridForTesting(testGrid);
+
+        const result = model.activateRocket(1, 1);
+
+        expect(result.destroyed.length).toBe(3);
+        expect(model.canMakeMove()).toBe(true);
     });
 });

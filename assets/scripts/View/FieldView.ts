@@ -91,6 +91,7 @@ export default class FieldView extends cc.Component {
             .call(() => {
                 this.isAnimating = false;
                 callback();
+                targetNode.setScale(1.0);
             })
             .start();
     }
@@ -104,6 +105,61 @@ export default class FieldView extends cc.Component {
         blockNode.opacity = isHighlighted ? 150 : 255;
 
         blockNode.scale = isHighlighted ? 0.9 : 1.0;
+    }
+
+    public animateRocketInteraction(rocketId: string, rocketType: BlockType, callback: () => void): void {
+        const rocket = this._blocks.get(rocketId);
+        if (!rocket) {
+            return;
+        }
+
+        const rocketData = rocket.getComponent(BlockView);
+        if (!rocketData) {
+            return;
+        }
+
+        let firstPoint: { x: number, y: number } | null = null;
+        let secondPoint: { x: number, y: number } | null = null;
+
+        if (rocketType === BlockType.RocketVertical) {
+            firstPoint = this.getFieldPosByIndexes(0, rocketData.col);
+            secondPoint = this.getFieldPosByIndexes(this._rows, rocketData.col);
+        }
+
+        if (rocketType === BlockType.RocketHorizontal) {
+            firstPoint = this.getFieldPosByIndexes(rocketData.row, 0);
+            secondPoint = this.getFieldPosByIndexes(rocketData.row, this._cols);
+        }
+
+        if (!firstPoint || !secondPoint) {
+            return;
+        }
+
+        this.isAnimating = true;
+
+        const cloneId = rocketId + "_clone";
+        const rocketClone = this.spawnBlock(rocketData.row, rocketData.col, cloneId, rocketType);
+
+        rocket.setSiblingIndex(1000);
+        rocketClone.setSiblingIndex(1000);
+
+        cc.tween(rocketClone)
+            .to(0.2, { position: cc.v3(firstPoint) }, { easing: 'cubicIn' })
+            .call(() => {
+                rocketClone.destroy();
+                this._blocks.delete(cloneId);
+            })
+            .start();
+
+        cc.tween(rocket)
+            .to(0.2, { position: cc.v3(secondPoint) }, { easing: 'cubicIn' })
+            .call(() => {
+                this.isAnimating = false;
+                if (callback) {
+                    callback();
+                }
+            })
+            .start();
     }
 
     public shuffle(blockData: IBlockData[], callback: () => void): void {
@@ -162,9 +218,25 @@ export default class FieldView extends cc.Component {
         });
     }
 
+    public animateRocketSpawn(rocketData: IBlockData): void {
+        const rocket = this._blocks.get(rocketData.id) || this.spawnBlock(rocketData.row, rocketData.col, rocketData.id, rocketData.type);
+        if (!rocket) {
+            cc.log(`Couldn't find block with id: ${rocketData.id}`);
+            return;
+        }
+
+        this.applyBlockSprite(rocket, rocketData.type);
+        rocket.scale = 0;
+
+        cc.tween(rocket)
+            .to(0.2, { scale: 1.2 }, { easing: 'sineOut' })
+            .to(0.1, { scale: 1.0 }, { easing: 'sineIn' })
+            .start();
+    }
+
     private _onAnimationsCompleteCallback: (() => void) | null = null;
 
-    private spawnBlock(row: number, col: number, id: string, type: BlockType): void {
+    private spawnBlock(row: number, col: number, id: string, type: BlockType): cc.Node {
         const { x, y } = this.getFieldPosByIndexes(row, col);
         const newBlock = cc.instantiate(this.blockPrefab);
         newBlock.setPosition(x, y);
@@ -180,6 +252,8 @@ export default class FieldView extends cc.Component {
 
         this.node.addChild(newBlock);
         this._blocks.set(id, newBlock);
+
+        return newBlock;
     }
 
     private getFieldPosByIndexes(row: number, col: number): { x: number, y: number } {
@@ -219,7 +293,9 @@ export default class FieldView extends cc.Component {
 
     private handleSpawnedBlocks(spawned: ISpawnedBlockInfo[]): void {
         for (const spawnedInfo of spawned) {
-            this.spawnBlock(this._rows, spawnedInfo.col, spawnedInfo.id, spawnedInfo.type);
+            if (!this._blocks.get(spawnedInfo.id)) {
+                this.spawnBlock(this._rows, spawnedInfo.col, spawnedInfo.id, spawnedInfo.type);
+            }
             this.animateBlockMovement(spawnedInfo);
         }
     }

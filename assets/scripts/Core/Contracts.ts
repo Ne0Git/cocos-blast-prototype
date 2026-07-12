@@ -6,7 +6,9 @@ export enum BlockType {
     Yellow = 4,
     Purple = 5,
     Bomb = 100,
-    SuperTile = 101
+    SuperTile = 101,
+    RocketHorizontal = 102,
+    RocketVertical = 103
 }
 
 export enum GameState {
@@ -31,7 +33,8 @@ export enum BoosterRewardType {
 export enum BoosterType {
     None,
     Teleport,
-    Bomb
+    Bomb,
+    Rocket
 }
 
 export interface IBlockData {

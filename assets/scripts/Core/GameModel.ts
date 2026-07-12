@@ -89,11 +89,19 @@ export class GameModel implements IGameModel {
 
         for (let r = 0; r < this.rows; r++) {
             for (let c = 0; c < this.cols; c++) {
-                if (typeGrid[r][c] !== BlockType.None) {
-                    const group = Matcher.findGroup(typeGrid, r, c);
-                    if (group.length >= 2) {
-                        return true;
-                    }
+                const currentType = typeGrid[r][c];
+
+                if (currentType === BlockType.None) {
+                    continue;
+                }
+
+                if (currentType >= BlockType.Bomb) {
+                    return true;
+                }
+
+                const group = Matcher.findGroup(typeGrid, r, c);
+                if (group.length >= 2) {
+                    return true;
                 }
             }
         }
@@ -111,6 +119,14 @@ export class GameModel implements IGameModel {
         }
 
         return null;
+    }
+
+    public getBlockType(row: number, col: number): BlockType {
+        if(row >= 0 && row < this.rows && col >= 0 && col < this.cols) {
+            return this._grid[row][col].type;
+        }
+
+        return BlockType.None;
     }
 
     public activateBomb(row: number, col: number, radius: number): IMoveResult {
@@ -157,6 +173,46 @@ export class GameModel implements IGameModel {
             currentScore: this.currentScore,
             gameState: this.gameState
         };
+    }
+
+    public spawnRocket(row: number, col: number, destroyedGroup: { row: number, col: number }[]): IBlockData {
+        this._grid[row][col].type = this.determineRocketType(destroyedGroup);
+        return { ...this._grid[row][col] };
+    }
+
+    public activateRocket(row: number, col: number): IMoveResult {
+        if (this.gameState !== GameState.Playing) {
+            return this.createEmptyMoveResult();
+        }
+
+        const rocketType = this._grid[row][col].type;
+        if (rocketType !== BlockType.RocketHorizontal && rocketType !== BlockType.RocketVertical) {
+            return this.createEmptyMoveResult();
+        }
+
+        this.movesLeft--;
+
+        const destroyedBlocks: IBlockData[] = [];
+
+        if (rocketType === BlockType.RocketHorizontal) {
+            for (let c = 0; c < this.cols; c++) {
+                if (this._grid[row][c].type !== BlockType.None) {
+                    destroyedBlocks.push({ ...this._grid[row][c] });
+                    this._grid[row][c].type = BlockType.None;
+                }
+            }
+        } else {
+            for (let r = 0; r < this.rows; r++) {
+                if (this._grid[r][col].type !== BlockType.None) {
+                    destroyedBlocks.push({ ...this._grid[r][col] });
+                    this._grid[r][col].type = BlockType.None;
+                }
+            }
+        }
+
+        const scoreGained = this.addScore(destroyedBlocks.length);
+
+        return this.prepareMoveResult(destroyedBlocks, scoreGained);
     }
 
     public shuffle(): IBlockData[] {
@@ -329,5 +385,28 @@ export class GameModel implements IGameModel {
             currentScore: this.currentScore,
             gameState: this.gameState
         };
+    }
+
+    private determineRocketType(group: { row: number, col: number }[]): BlockType {
+        const rows = group.map(g => g.row);
+        const cols = group.map(g => g.col);
+
+        const minRow = Math.min(...rows);
+        const maxRow = Math.max(...rows);
+        const minCol = Math.min(...cols);
+        const maxCol = Math.max(...cols);
+
+        const height = maxRow - minRow + 1;
+        const width = maxCol - minCol + 1;
+
+        if (height > width) {
+            return BlockType.RocketVertical;
+        }
+
+        if (width > height) {
+            return BlockType.RocketHorizontal;
+        }
+
+        return Math.random() > 0.5 ? BlockType.RocketVertical : BlockType.RocketHorizontal;
     }
 }

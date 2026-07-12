@@ -1,5 +1,5 @@
 import { GameModel } from "../Core/GameModel";
-import { BoosterRewardType, BoosterType, GameState, IBlockData, ILevelConfig, IMoveResult, InteractionMode } from "../Core/Contracts";
+import { BlockType, BoosterRewardType, BoosterType, GameState, IBlockData, ILevelConfig, IMoveResult, InteractionMode } from "../Core/Contracts";
 import FieldView from "./FieldView";
 import UIView from "./UIView";
 import LevelManager from "../Infrastructure/LevelManager";
@@ -86,8 +86,22 @@ export default class GameController extends cc.Component {
 
         switch (this._currentMode) {
             case InteractionMode.Normal:
+                const blockType = this._model.getBlockType(row, col);
+                if (blockType && (blockType === BlockType.RocketVertical || blockType === BlockType.RocketHorizontal)) {
+                    const blockId: string | null = this._model.getBlockId(row, col);
+                    if (!blockId) {
+                        return;
+                    }
+
+                    this.fieldView.animateRocketInteraction(blockId, blockType, () => {
+                        result = this._model.activateRocket(row, col);
+                        this.processMoveResult(result, row, col);
+                    });
+                    return;
+                }
+
                 result = this._model.clickTile(row, col);
-                this.processMoveResult(result);
+                this.processMoveResult(result, row, col);
                 break;
 
             case InteractionMode.BoosterBomb:
@@ -206,12 +220,12 @@ export default class GameController extends cc.Component {
         this.uiView.showSettings();
     }
 
-    private processMoveResult(result: IMoveResult): void {
+    private processMoveResult(result: IMoveResult, clickedRow?: number, clickedCol?: number): void {
         this.uiView.updateScore(this._model.currentScore, this._model.targetScore);
         this.uiView.updateMoves(this._model.movesLeft);
 
         this.handleMoveAudio(result);
-        this.handleComboRewards(result);
+        this.handleComboRewards(result, clickedRow, clickedCol);
 
         this.fieldView.handleMoveResult(result, () => {
             this.handlePostmoveChecks(result);
@@ -228,7 +242,7 @@ export default class GameController extends cc.Component {
         }
     }
 
-    private handleComboRewards(result: IMoveResult): void {
+    private handleComboRewards(result: IMoveResult, clickedRow?: number, clickedCol?: number): void {
         if (this._currentMode !== InteractionMode.Normal) {
             return;
         }
@@ -251,7 +265,15 @@ export default class GameController extends cc.Component {
                 this.levelManager.addTeleport();
             }
         } else {
-            cc.log(`[Combo] Player gained on field booster: ${BoosterType[matchedCombo.boosterType]} for ${destroyedCount} blocks!`);
+            if (typeof clickedRow !== 'number' || typeof clickedCol !== 'number') {
+                cc.warn("[Combo] missing click coordinates for on field booster!");
+                return;
+            }
+
+            if (matchedCombo.boosterType === BoosterType.Rocket) {
+                const rocketData = this._model.spawnRocket(clickedRow, clickedCol, result.destroyed);
+                this.fieldView.animateRocketSpawn(rocketData);
+            }
         }
 
         this.uiView.updateBoosterCounts(this.levelManager.bombCount, this.levelManager.teleportCount);
