@@ -51,6 +51,8 @@ export default class FieldView extends cc.Component {
                 this.spawnBlock(r, c, gridData[r][c].id, gridData[r][c].type);
             }
         }
+
+        this.shuffle(gridData.reduce((acc, curr) => [...acc, ...curr], []));
     }
 
     public handleMoveResult(result: IMoveResult, callback: () => void): void {
@@ -160,7 +162,7 @@ export default class FieldView extends cc.Component {
             .start();
     }
 
-    public shuffle(blockData: IBlockData[], callback: () => void): void {
+    public shuffle(blockData: IBlockData[], callback?: () => void): void {
         this.isAnimating = true;
         this._activeTweensCount = 0;
 

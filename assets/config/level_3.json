@@ -3,8 +3,8 @@
   "id": 3,
   "rows": 3,
   "cols": 3,
-  "moves": 17,
-  "targetScore": 470,
+  "moves": 20,
+  "targetScore": 500,
   "scorePerBlock": 10,
   "availableColors": [
     1,
