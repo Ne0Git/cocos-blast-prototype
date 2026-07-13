@@ -254,7 +254,7 @@ export default class GameController extends cc.Component {
         this.uiView.updateScore(this._model.currentScore, this._model.targetScore);
         this.uiView.updateMoves(this._model.movesLeft);
 
-        this.handleMoveAudio(result);
+        this.handleMoveAudio(result, clickedBlock);
         this.handleComboRewards(result, clickedBlock);
 
         this.fieldView.handleMoveResult(result, () => {
@@ -262,9 +262,13 @@ export default class GameController extends cc.Component {
         });
     }
 
-    private handleMoveAudio(result: IMoveResult): void {
+    private handleMoveAudio(result: IMoveResult, clickedBlock?: IBlockData): void {
         if (this._currentMode === InteractionMode.Normal && result.destroyed.length > 0) {
-            AudioManager.instance.playSFX(AudioManager.instance.blast);
+            if (clickedBlock && clickedBlock.type === BlockType.SuperBomb) {
+                AudioManager.instance.playSFX(AudioManager.instance.explosion);
+            } else {
+                AudioManager.instance.playSFX(AudioManager.instance.blast);
+            }
         } else if (this._currentMode === InteractionMode.BoosterBomb) {
             AudioManager.instance.playSFX(AudioManager.instance.explosion);
         } else if (this._currentMode === InteractionMode.BoosterTeleportStep2) {
