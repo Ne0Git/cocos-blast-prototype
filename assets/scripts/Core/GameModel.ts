@@ -1,4 +1,4 @@
-import { ILevelConfig, IGameModel, BlockType, GameState, IBlockData, IMoveResult, IFallingBlockInfo, ISpawnedBlockInfo } from "./Contracts";
+import { ILevelConfig, IGameModel, BlockType, GameState, IBlockData, IMoveResult, IFallingBlockInfo, ISpawnedBlockInfo, BoosterType } from "./Contracts";
 import { Matcher } from "./Matcher";
 
 export class GameModel implements IGameModel {
@@ -122,11 +122,19 @@ export class GameModel implements IGameModel {
     }
 
     public getBlockType(row: number, col: number): BlockType {
-        if(row >= 0 && row < this.rows && col >= 0 && col < this.cols) {
+        if (row >= 0 && row < this.rows && col >= 0 && col < this.cols) {
             return this._grid[row][col].type;
         }
 
         return BlockType.None;
+    }
+
+    public getBlockData(row: number, col: number): IBlockData | null {
+        if (row >= 0 && row < this.rows && col >= 0 && col < this.cols) {
+            return { ...this._grid[row][col] };
+        }
+
+        return null;
     }
 
     public activateBomb(row: number, col: number, radius: number): IMoveResult {
@@ -175,8 +183,13 @@ export class GameModel implements IGameModel {
         };
     }
 
-    public spawnRocket(row: number, col: number, destroyedGroup: { row: number, col: number }[]): IBlockData {
-        this._grid[row][col].type = this.determineRocketType(destroyedGroup);
+    public spawnBooster(row: number, col: number, boosterType: BoosterType, destroyedGroup: { row: number, col: number }[]): IBlockData {
+        if (boosterType === BoosterType.Rocket) {
+            this._grid[row][col].type = this.determineRocketType(destroyedGroup);
+        } else if (boosterType === BoosterType.SuperBomb) {
+            this._grid[row][col].type = BlockType.SuperBomb;
+        }
+
         return { ...this._grid[row][col] };
     }
 

@@ -37,6 +37,9 @@ export default class GameController extends cc.Component {
     @property({ type: cc.Integer, min: 1 })
     public bombRadius: number = 1;
 
+    @property({ type: cc.Integer, min: 1 })
+    public superBombRadius: number = 2;
+
     @property([ComboBoosterMapping])
     public comboSettings: ComboBoosterMapping[] = [];
 
@@ -106,22 +109,29 @@ export default class GameController extends cc.Component {
 
         switch (this._currentMode) {
             case InteractionMode.Normal:
-                const blockType = this._model.getBlockType(row, col);
-                if (blockType && (blockType === BlockType.RocketVertical || blockType === BlockType.RocketHorizontal)) {
-                    const blockId: string | null = this._model.getBlockId(row, col);
-                    if (!blockId) {
-                        return;
-                    }
+                const blockData = this._model.getBlockData(row, col);
+                if (!blockData) {
+                    return;
+                }
 
-                    this.fieldView.animateRocketInteraction(blockId, blockType, () => {
+                if (blockData.type === BlockType.RocketVertical || blockData.type === BlockType.RocketHorizontal) {
+                    this.fieldView.animateRocketInteraction(blockData.id, blockData.type, () => {
                         result = this._model.activateRocket(row, col);
-                        this.processMoveResult(result, row, col);
+                        this.processMoveResult(result, blockData);
+                    });
+                    return;
+                }
+
+                if (blockData.type === BlockType.SuperBomb) {
+                    this.fieldView.animateBombPlacement(blockData.id, blockData.type, () => {
+                        result = this._model.activateBomb(row, col, this.superBombRadius);
+                        this.processMoveResult(result, blockData);
                     });
                     return;
                 }
 
                 result = this._model.clickTile(row, col);
-                this.processMoveResult(result, row, col);
+                this.processMoveResult(result, blockData);
                 break;
 
             case InteractionMode.BoosterBomb:
@@ -130,7 +140,7 @@ export default class GameController extends cc.Component {
                     return;
                 }
 
-                this.fieldView.animateBombPlacement(blockId, () => {
+                this.fieldView.animateBombPlacement(blockId, BlockType.Bomb, () => {
                     this.levelManager.useBomb();
                     this.uiView.updateBoosterCounts(this.levelManager.bombCount, this.levelManager.teleportCount);
 
@@ -240,12 +250,12 @@ export default class GameController extends cc.Component {
         this.uiView.showSettings();
     }
 
-    private processMoveResult(result: IMoveResult, clickedRow?: number, clickedCol?: number): void {
+    private processMoveResult(result: IMoveResult, clickedBlock?: IBlockData): void {
         this.uiView.updateScore(this._model.currentScore, this._model.targetScore);
         this.uiView.updateMoves(this._model.movesLeft);
 
         this.handleMoveAudio(result);
-        this.handleComboRewards(result, clickedRow, clickedCol);
+        this.handleComboRewards(result, clickedBlock);
 
         this.fieldView.handleMoveResult(result, () => {
             this.handlePostmoveChecks(result);
@@ -262,8 +272,8 @@ export default class GameController extends cc.Component {
         }
     }
 
-    private handleComboRewards(result: IMoveResult, clickedRow?: number, clickedCol?: number): void {
-        if (this._currentMode !== InteractionMode.Normal) {
+    private handleComboRewards(result: IMoveResult, clickedBlock?: IBlockData): void {
+        if (this._currentMode !== InteractionMode.Normal || clickedBlock && clickedBlock.type >= BlockType.Bomb) {
             return;
         }
 
@@ -287,15 +297,13 @@ export default class GameController extends cc.Component {
                 this.spawnBoosterNotification("+1", this.uiView.teleportButton);
             }
         } else {
-            if (typeof clickedRow !== 'number' || typeof clickedCol !== 'number') {
-                cc.warn("[Combo] missing click coordinates for on field booster!");
+            if (matchedCombo.boosterType !== BoosterType.Rocket && matchedCombo.boosterType !== BoosterType.SuperBomb) {
+                cc.warn(`[Combo] booster type "${matchedCombo.boosterType}" is not supported as on field booster!`);
                 return;
             }
 
-            if (matchedCombo.boosterType === BoosterType.Rocket) {
-                const rocketData = this._model.spawnRocket(clickedRow, clickedCol, result.destroyed);
-                this.fieldView.animateRocketSpawn(rocketData);
-            }
+            const rocketData = this._model.spawnBooster(clickedBlock!.row, clickedBlock!.col, matchedCombo.boosterType, result.destroyed);
+            this.fieldView.animateBoosterSpawn(rocketData);
         }
 
         this.uiView.updateBoosterCounts(this.levelManager.bombCount, this.levelManager.teleportCount);

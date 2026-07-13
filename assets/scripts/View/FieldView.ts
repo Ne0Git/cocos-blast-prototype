@@ -71,7 +71,7 @@ export default class FieldView extends cc.Component {
         }
     }
 
-    public animateBombPlacement(blockId: string, callback: () => void): void {
+    public animateBombPlacement(blockId: string, blockType: BlockType, callback: () => void): void {
         let targetNode: cc.Node | undefined = this._blocks.get(blockId);
 
         if (!targetNode) {
@@ -81,7 +81,7 @@ export default class FieldView extends cc.Component {
 
         this.isAnimating = true;
 
-        this.applyBlockSprite(targetNode, BlockType.Bomb);
+        this.applyBlockSprite(targetNode, blockType);
 
         cc.tween(targetNode)
             .to(0.1, { scale: 0.8 })
@@ -216,17 +216,17 @@ export default class FieldView extends cc.Component {
         });
     }
 
-    public animateRocketSpawn(rocketData: IBlockData): void {
-        const rocket = this._blocks.get(rocketData.id) || this.spawnBlock(rocketData.row, rocketData.col, rocketData.id, rocketData.type);
-        if (!rocket) {
-            cc.log(`Couldn't find block with id: ${rocketData.id}`);
+    public animateBoosterSpawn(boosterData: IBlockData): void {
+        const block = this._blocks.get(boosterData.id) || this.spawnBlock(boosterData.row, boosterData.col, boosterData.id, boosterData.type);
+        if (!block) {
+            cc.log(`Couldn't find block with id: ${boosterData.id}`);
             return;
         }
 
-        this.applyBlockSprite(rocket, rocketData.type);
-        rocket.scale = 0;
+        this.applyBlockSprite(block, boosterData.type);
+        block.scale = 0;
 
-        cc.tween(rocket)
+        cc.tween(block)
             .to(0.2, { scale: 1.2 }, { easing: 'sineOut' })
             .to(0.1, { scale: 1.0 }, { easing: 'sineIn' })
             .start();
