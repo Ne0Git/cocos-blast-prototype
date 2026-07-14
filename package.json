@@ -4,7 +4,8 @@
   "main": ".eslintrc.js",
   "scripts": {
     "test": "jest",
-    "deploy": "gh-pages -d build/web-mobile"
+    "predeploy": "node -e \"const fs = require('fs'); ['build/web-mobile/.gitignore', 'build/web-mobile/.nojekyll'].forEach(f => fs.writeFileSync(f, ''))\"",
+    "deploy": "gh-pages -d build/web-mobile -t"
   },
   "keywords": [],
   "author": "",
