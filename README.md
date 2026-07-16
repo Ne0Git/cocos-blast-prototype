@@ -2,7 +2,7 @@
 
 [Русская версия](./README.ru.md)
 
-A casual prototype of a puzzle game with Blast mechanics, developed as a technical assesment for the **TapClap** company.
+A casual prototype of a puzzle game with Blast mechanics.
 
 ## 🚀 Demo
 * **Play in browser (GitHub Pages):** https://Ne0Git.github.io/cocos-blast-prototype (Desktop and Mobile browsers are supported).
